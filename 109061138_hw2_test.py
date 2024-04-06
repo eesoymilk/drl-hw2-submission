@@ -48,31 +48,28 @@ class Agent:
     n_frames_skip = 4
     n_stacks = 4
     shape = (84, 84)
-    epsilon = 0.05
+    epsilon = 0.2
 
     def __init__(self):
         self.step_count = 0
         self.current_action = 0
-        self.frames = deque(maxlen=self.n_stacks)
+        self.frames = deque(
+            [
+                np.random.randint(0, 255, self.obs_dim, dtype=np.uint8)
+                for _ in range(self.n_stacks)
+            ],
+            maxlen=self.n_stacks,
+        )
         self.initial_state_frames = get_initial_stage_frames()
         self.net = MarioDDQN(self.action_dim, 392).float()
 
         try:
-            self.load(checkpoisnts_dir / "ddqn_rmsprop_mse_10M_decay_7.chkpt")
+            self.load(checkpoisnts_dir / "ddqn_rmsprop_mse_10M_decay_24.chkpt")
         except ValueError:
             self.load(script_dir / "109061138_hw2_data")
 
     def act(self, observation: npt.NDArray) -> int:
-        if any(
-            np.array_equal(observation, frame)
-            for frame in self.initial_state_frames
-        ):
-            self.frames.clear()
-            self.step_count = 0
-            for _ in range(self.n_stacks):
-                self.frames.append(observation)
-        else:
-            self.frames.append(observation)
+        self.frames.append(observation)
 
         if np.random.rand() < self.epsilon:
             self.current_action = np.random.randint(self.action_dim)
@@ -130,7 +127,7 @@ def main() -> None:
     time_limit = 120.0
     agent = Agent()
 
-    for episode in tqdm(range(n_episodes), desc="Evaluating", unit="episode"):
+    for episode in range(n_episodes):
         obs = env.reset()
         start_time = perf_counter()
         episode_reward = 0.0

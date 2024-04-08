@@ -10,7 +10,7 @@ class MarioDDQN(nn.Module):
     def __init__(
         self,
         output_dim: int,
-        hidden_dim: int = 392,
+        hidden_dim: int = 512,
     ):
         super().__init__()
         self.hidden_dim = hidden_dim
@@ -51,21 +51,21 @@ class MarioDDQN(nn.Module):
             nn.ReLU(),
             nn.Conv2d(32, 64, kernel_size=4, stride=2),
             nn.ReLU(),
-            nn.Conv2d(64, 64, kernel_size=3, stride=1),
-            nn.ReLU(),
+            nn.Conv2d(64, 64, kernel_size=2, stride=1),
+            nn.MaxPool2d(kernel_size=2),
             nn.Flatten(),
         )
 
     def __build_value_stream(self):
         return nn.Sequential(
-            nn.Linear(3136, self.hidden_dim),
+            nn.Linear(1024, self.hidden_dim),
             nn.ReLU(),
             nn.Linear(self.hidden_dim, 1),
         )
 
     def __build_advantage_stream(self, output_dim: int):
         return nn.Sequential(
-            nn.Linear(3136, self.hidden_dim),
+            nn.Linear(1024, self.hidden_dim),
             nn.ReLU(),
             nn.Linear(self.hidden_dim, output_dim),
         )

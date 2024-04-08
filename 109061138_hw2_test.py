@@ -26,22 +26,6 @@ warnings.filterwarnings("ignore", message=".*SuperMarioBros.*-v0.*")
 checkpoisnts_dir = script_dir / "checkpoints_202404050135"
 
 
-def get_initial_stage_frames():
-    initial_stage_frames: List[npt.NDArray[np.float32]] = []
-    pbar = tqdm(total=32, desc="Loading initial stage frames", unit="stage")
-    for world in range(1, 9):
-        for stage in range(1, 5):
-            env = gym_super_mario_bros.make(
-                f"SuperMarioBros-{world}-{stage}-v0"
-            )
-            env = JoypadSpace(env, COMPLEX_MOVEMENT)
-            state = env.reset()
-            initial_stage_frames.append(state)
-            pbar.update(1)
-    pbar.close()
-    return initial_stage_frames
-
-
 class Agent:
     obs_dim = (240, 256, 3)
     action_dim = 7
@@ -60,13 +44,9 @@ class Agent:
             ],
             maxlen=self.n_stacks,
         )
-        self.initial_state_frames = get_initial_stage_frames()
-        self.net = MarioDDQN(self.action_dim, 392).float()
+        self.net = MarioDDQN(self.action_dim, 512).float()
 
-        try:
-            self.load(checkpoisnts_dir / "ddqn_rmsprop_mse_10M_decay_24.chkpt")
-        except ValueError:
-            self.load(script_dir / "109061138_hw2_data")
+        self.load(script_dir / "109061138_hw2_data")
 
     def act(self, observation: npt.NDArray) -> int:
         self.frames.append(observation)
